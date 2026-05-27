@@ -93,22 +93,22 @@ namespace _1121538_徐霈綺_CardGame
         private void SetupUI()
         {
             this.Text = "21點遊戲 (Blackjack)";
-            this.Size = new Size(800, 600);
+            this.Size = new Size(950, 650); // 增加視窗寬度與高度
             this.BackColor = Color.DarkGreen;
 
             btnHit.Text = "抽牌 (Hit)";
-            btnHit.Location = new Point(50, 500);
+            btnHit.Location = new Point(50, 540);
             btnHit.Size = new Size(100, 40);
             btnHit.Click += BtnHit_Click;
 
             btnStand.Text = "停牌 (Stand)";
-            btnStand.Location = new Point(160, 500);
+            btnStand.Location = new Point(170, 540); // 增加間距
             btnStand.Size = new Size(100, 40);
             btnStand.Click += BtnStand_Click;
 
-            btnRestart.Text = "重新開始";
-            btnRestart.Location = new Point(270, 500);
-            btnRestart.Size = new Size(100, 40);
+            btnRestart.Text = "下一局 / 重新開始";
+            btnRestart.Location = new Point(290, 540); // 增加間距
+            btnRestart.Size = new Size(130, 40); // 加大按鈕
             btnRestart.Click += BtnRestart_Click;
 
             lblDealerScore.Text = "莊家點數: ?";
@@ -118,7 +118,7 @@ namespace _1121538_徐霈綺_CardGame
             lblDealerScore.Font = new Font("Arial", 14, FontStyle.Bold);
 
             panelDealer.Location = new Point(50, 60);
-            panelDealer.Size = new Size(700, 150);
+            panelDealer.Size = new Size(800, 150); // 增加寬度
 
             lblPlayerScore.Text = "玩家點數: 0";
             lblPlayerScore.Location = new Point(50, 260);
@@ -127,10 +127,10 @@ namespace _1121538_徐霈綺_CardGame
             lblPlayerScore.Font = new Font("Arial", 14, FontStyle.Bold);
 
             panelPlayer.Location = new Point(50, 290);
-            panelPlayer.Size = new Size(700, 150);
+            panelPlayer.Size = new Size(800, 150); // 增加寬度
 
             lblResult.Text = "";
-            lblResult.Location = new Point(450, 500);
+            lblResult.Location = new Point(450, 545); // 往下移
             lblResult.ForeColor = Color.Yellow;
             lblResult.AutoSize = true;
             lblResult.Font = new Font("Arial", 16, FontStyle.Bold);
@@ -143,7 +143,7 @@ namespace _1121538_徐霈綺_CardGame
                 deckBackground.SizeMode = PictureBoxSizeMode.StretchImage;
                 deckBackground.Size = new Size(100, 140);
                 // 產生稍微錯開的堆疊效果
-                deckBackground.Location = new Point(650 + i * 2, 180 - i * 2); 
+                deckBackground.Location = new Point(800 + i * 2, 180 - i * 2); // 往右移
                 this.Controls.Add(deckBackground);
             }
 
@@ -151,24 +151,24 @@ namespace _1121538_徐霈綺_CardGame
             pbDeck.Image = Properties.Resources.back;
             pbDeck.SizeMode = PictureBoxSizeMode.StretchImage;
             pbDeck.Size = new Size(100, 140);
-            pbDeck.Location = new Point(650, 180); // 放在畫面右側中間
+            pbDeck.Location = new Point(800, 180); // 往右移
 
             // 籌碼標籤
             lblTotalChips.Text = "總籌碼: " + totalChips;
-            lblTotalChips.Location = new Point(50, 460);
+            lblTotalChips.Location = new Point(50, 480); // 調整位置
             lblTotalChips.ForeColor = Color.White;
             lblTotalChips.AutoSize = true;
             lblTotalChips.Font = new Font("Arial", 12, FontStyle.Bold);
 
             lblCurrentBet.Text = "目前下注: " + currentBet;
-            lblCurrentBet.Location = new Point(200, 460);
+            lblCurrentBet.Location = new Point(200, 480); // 調整位置
             lblCurrentBet.ForeColor = Color.Yellow;
             lblCurrentBet.AutoSize = true;
             lblCurrentBet.Font = new Font("Arial", 12, FontStyle.Bold);
 
             // 發牌按鈕
             btnDeal.Text = "確認下注 / 發牌";
-            btnDeal.Location = new Point(620, 460);
+            btnDeal.Location = new Point(780, 475); // 向右移
             btnDeal.Size = new Size(120, 40);
             btnDeal.Click += BtnDeal_Click;
 
@@ -179,8 +179,8 @@ namespace _1121538_徐霈綺_CardGame
                 Button btnBet = new Button();
                 btnBet.Text = "+" + betAmounts[i].ToString();
                 btnBet.Tag = betAmounts[i];
-                btnBet.Location = new Point(350 + i * 45, 460);
-                btnBet.Size = new Size(40, 30);
+                btnBet.Location = new Point(350 + i * 65, 480); // 調整間距為 65
+                btnBet.Size = new Size(55, 30); // 微調大小
                 btnBet.Click += BtnBet_Click;
                 betButtons.Add(btnBet);
                 this.Controls.Add(btnBet);
@@ -190,13 +190,11 @@ namespace _1121538_徐霈綺_CardGame
             Button btnBetAllIn = new Button();
             btnBetAllIn.Text = "All In";
             btnBetAllIn.Tag = -1; // -1 代表 All In
-            btnBetAllIn.Location = new Point(350 + 5 * 45, 460);
-            btnBetAllIn.Size = new Size(50, 30);
+            btnBetAllIn.Location = new Point(350 + 5 * 65, 480);
+            btnBetAllIn.Size = new Size(60, 30);
             btnBetAllIn.Click += BtnBet_Click;
             betButtons.Add(btnBetAllIn);
             this.Controls.Add(btnBetAllIn);
-
-            btnRestart.Text = "下一局 / 重新開始";
 
             this.Controls.Add(lblTotalChips);
             this.Controls.Add(lblCurrentBet);
