@@ -31,21 +31,39 @@ namespace _1121538_徐霈綺_CardGame
         private Panel panelDealer = new Panel();
         private PictureBox pbDeck = new PictureBox(); // 新增實體牌堆
 
+        // 籌碼與下注相關
+        private int totalChips = 500;
+        private int currentBet = 0;
+        private Label lblTotalChips = new Label();
+        private Label lblCurrentBet = new Label();
+        private Button btnDeal = new Button();
+        private List<Button> betButtons = new List<Button>();
+
         private string takeCardTempFilePath;
         private string placeCardTempFilePath;
+        private string placeChipTempFilePath;
 
         public Form1()
         {
             InitializeComponent();
             SetupUI();
             ExtractAudioFiles();
-            StartNewGame();
+            StartBettingPhase();
         }
 
         private void ExtractAudioFiles()
         {
             takeCardTempFilePath = Path.Combine(Path.GetTempPath(), "takecard.mp3");
             placeCardTempFilePath = Path.Combine(Path.GetTempPath(), "placecard.mp3");
+            placeChipTempFilePath = Path.Combine(Path.GetTempPath(), "placechip.mp3");
+
+            if (Properties.Resources.placechip != null)
+            {
+                using (FileStream fs = new FileStream(placeChipTempFilePath, FileMode.Create, FileAccess.Write))
+                {
+                    Properties.Resources.placechip.CopyTo(fs);
+                }
+            }
 
             if (Properties.Resources.takecard != null)
             {
@@ -135,6 +153,55 @@ namespace _1121538_徐霈綺_CardGame
             pbDeck.Size = new Size(100, 140);
             pbDeck.Location = new Point(650, 180); // 放在畫面右側中間
 
+            // 籌碼標籤
+            lblTotalChips.Text = "總籌碼: " + totalChips;
+            lblTotalChips.Location = new Point(50, 460);
+            lblTotalChips.ForeColor = Color.White;
+            lblTotalChips.AutoSize = true;
+            lblTotalChips.Font = new Font("Arial", 12, FontStyle.Bold);
+
+            lblCurrentBet.Text = "目前下注: " + currentBet;
+            lblCurrentBet.Location = new Point(200, 460);
+            lblCurrentBet.ForeColor = Color.Yellow;
+            lblCurrentBet.AutoSize = true;
+            lblCurrentBet.Font = new Font("Arial", 12, FontStyle.Bold);
+
+            // 發牌按鈕
+            btnDeal.Text = "確認下注 / 發牌";
+            btnDeal.Location = new Point(620, 460);
+            btnDeal.Size = new Size(120, 40);
+            btnDeal.Click += BtnDeal_Click;
+
+            // 下注按鈕
+            int[] betAmounts = { 100, 50, 25, 10, 5 };
+            for (int i = 0; i < betAmounts.Length; i++)
+            {
+                Button btnBet = new Button();
+                btnBet.Text = "+" + betAmounts[i].ToString();
+                btnBet.Tag = betAmounts[i];
+                btnBet.Location = new Point(350 + i * 45, 460);
+                btnBet.Size = new Size(40, 30);
+                btnBet.Click += BtnBet_Click;
+                betButtons.Add(btnBet);
+                this.Controls.Add(btnBet);
+            }
+
+            // All in 按鈕
+            Button btnBetAllIn = new Button();
+            btnBetAllIn.Text = "All In";
+            btnBetAllIn.Tag = -1; // -1 代表 All In
+            btnBetAllIn.Location = new Point(350 + 5 * 45, 460);
+            btnBetAllIn.Size = new Size(50, 30);
+            btnBetAllIn.Click += BtnBet_Click;
+            betButtons.Add(btnBetAllIn);
+            this.Controls.Add(btnBetAllIn);
+
+            btnRestart.Text = "下一局 / 重新開始";
+
+            this.Controls.Add(lblTotalChips);
+            this.Controls.Add(lblCurrentBet);
+            this.Controls.Add(btnDeal);
+
             this.Controls.Add(btnHit);
             this.Controls.Add(btnStand);
             this.Controls.Add(btnRestart);
@@ -190,13 +257,69 @@ namespace _1121538_徐霈綺_CardGame
             return score;
         }
 
-        private async void StartNewGame()
+        private void StartBettingPhase()
         {
-            InitializeDeck();
             playerHand.Clear();
             dealerHand.Clear();
             panelPlayer.Controls.Clear();
             panelDealer.Controls.Clear();
+            lblResult.Text = "請下注...";
+
+            currentBet = 0;
+            UpdateChipsUI();
+
+            btnHit.Enabled = false;
+            btnStand.Enabled = false;
+            btnRestart.Enabled = false;
+            btnDeal.Enabled = true;
+
+            foreach (var btn in betButtons)
+            {
+                btn.Enabled = true;
+            }
+        }
+
+        private void UpdateChipsUI()
+        {
+            lblTotalChips.Text = "總籌碼: " + totalChips;
+            lblCurrentBet.Text = "目前下注: " + currentBet;
+        }
+
+        private void BtnBet_Click(object sender, EventArgs e)
+        {
+            Button btn = sender as Button;
+            int amount = (int)btn.Tag;
+
+            if (amount == -1) // All In
+            {
+                amount = totalChips;
+            }
+
+            if (totalChips >= amount && amount > 0)
+            {
+                totalChips -= amount;
+                currentBet += amount;
+                PlayAudio(placeChipTempFilePath);
+                UpdateChipsUI();
+            }
+        }
+
+        private async void BtnDeal_Click(object sender, EventArgs e)
+        {
+            if (currentBet == 0)
+            {
+                MessageBox.Show("請先下注！");
+                return;
+            }
+
+            btnDeal.Enabled = false;
+            foreach (var btn in betButtons)
+            {
+                btn.Enabled = false;
+            }
+            btnRestart.Enabled = true;
+
+            InitializeDeck();
             lblResult.Text = "";
             btnHit.Enabled = true;
             btnStand.Enabled = true;
@@ -295,7 +418,7 @@ namespace _1121538_徐霈綺_CardGame
             int playerScore = CalculateScore(playerHand);
             if (playerScore == 21)
             {
-                EndGame("玩家21點！玩家獲勝！");
+                EndGame("玩家21點！玩家獲勝！", 1);
             }
         }
 
@@ -303,10 +426,10 @@ namespace _1121538_徐霈綺_CardGame
         {
             await DrawCard(playerHand, panelPlayer, false);
             UpdateScores(false);
-            
+
             if (CalculateScore(playerHand) > 21)
             {
-                EndGame("玩家爆牌！莊家獲勝！");
+                EndGame("玩家爆牌！莊家獲勝！", -1);
             }
         }
 
@@ -337,28 +460,40 @@ namespace _1121538_徐霈綺_CardGame
 
             if (dealerScore > 21)
             {
-                EndGame("莊家爆牌！玩家獲勝！");
+                EndGame("莊家爆牌！玩家獲勝！", 1);
             }
             else if (playerScore > dealerScore)
             {
-                EndGame("玩家獲勝！");
+                EndGame("玩家獲勝！", 1);
             }
             else if (dealerScore > playerScore)
             {
-                EndGame("莊家獲勝！");
+                EndGame("莊家獲勝！", -1);
             }
             else
             {
-                EndGame("平手！");
+                EndGame("平手！", 0);
             }
         }
 
-        private void EndGame(string message)
+        private void EndGame(string message, int winStatus)
         {
+            if (winStatus == 1)
+            {
+                totalChips += currentBet * 2; // 贏回下注及獎金
+            }
+            else if (winStatus == 0)
+            {
+                totalChips += currentBet; // 退回下注
+            }
+            // 莊家獲勝時籌碼已被扣除
+            currentBet = 0;
+            UpdateChipsUI();
+
             lblResult.Text = message;
             btnHit.Enabled = false;
             btnStand.Enabled = false;
-            
+
             // 如果遊戲結束時暗牌還沒翻開，翻開它
             PictureBox hiddenPb = panelDealer.Controls.Find("hiddenCard", false).FirstOrDefault() as PictureBox;
             if (hiddenPb != null)
@@ -370,7 +505,12 @@ namespace _1121538_徐霈綺_CardGame
 
         private void BtnRestart_Click(object sender, EventArgs e)
         {
-            StartNewGame();
+            if (totalChips <= 0)
+            {
+                MessageBox.Show("籌碼已耗盡，為您補滿500籌碼重新開始！");
+                totalChips = 500;
+            }
+            StartBettingPhase();
         }
     }
 }
