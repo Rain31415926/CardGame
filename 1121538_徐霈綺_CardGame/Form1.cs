@@ -20,7 +20,7 @@ namespace _1121538_徐霈綺_CardGame
         private List<int> deck = new List<int>();
         private List<int> playerHand = new List<int>();
         private List<int> dealerHand = new List<int>();
-        
+
         private Button btnHit = new Button();
         private Button btnStand = new Button();
         private Button btnRestart = new Button();
@@ -45,10 +45,14 @@ namespace _1121538_徐霈綺_CardGame
         private Button btnStartGame = new Button();
         private string backMusicTempFilePath;
 
-        // 選擇角色畫面相關
+        // 選擇角色畫面與技能相關
         private Panel panelCharacterScreen = new Panel();
         private bool isCapooSelected = false;
         private bool capooSkillUsed = false;
+
+        private bool isDogSelected = false;
+        private bool dogSkillUsed = false;
+        private Button btnDogSkill = new Button(); // 狗狗技能按鈕
 
         private string takeCardTempFilePath;
         private string placeCardTempFilePath;
@@ -155,14 +159,14 @@ namespace _1121538_徐霈綺_CardGame
         {
             panelTitle.BringToFront();
             panelTitle.Visible = true;
-            PlayBackgroundMusic(backMusicTempFilePath, 1000); // 正常音量
+            PlayBackgroundMusic(backMusicTempFilePath, 1000);
         }
 
         private void BtnStartGame_Click(object sender, EventArgs e)
         {
             StopBackgroundMusic();
             panelTitle.Visible = false;
-            PlayBackgroundMusic(backMusicTempFilePath, 300); // 低音量 (範圍約0-1000)
+            PlayBackgroundMusic(backMusicTempFilePath, 300);
             panelCharacterScreen.BringToFront();
             panelCharacterScreen.Visible = true;
         }
@@ -181,37 +185,73 @@ namespace _1121538_徐霈綺_CardGame
             lblSelectTitle.AutoSize = true;
             lblSelectTitle.Location = new Point(330, 50);
 
+            // ================== 咖波區塊 ==================
             PictureBox pbCapoo = new PictureBox();
             pbCapoo.Image = (Image)Properties.Resources.ResourceManager.GetObject("character1");
             pbCapoo.SizeMode = PictureBoxSizeMode.Zoom;
             pbCapoo.Size = new Size(200, 200);
-            pbCapoo.Location = new Point(375, 150);
+            pbCapoo.Location = new Point(200, 150);
 
             Label lblCapooDesc = new Label();
             lblCapooDesc.Text = "角色：咖波\n技能：每局限發動一次。當抽牌導致爆牌時，\n強制「吃掉」最後抽到的那張牌，讓點數退回，\n並強制進入「停牌」。";
             lblCapooDesc.Font = new Font("Arial", 14, FontStyle.Bold);
             lblCapooDesc.ForeColor = Color.White;
             lblCapooDesc.AutoSize = true;
-            lblCapooDesc.Location = new Point(275, 370);
+            lblCapooDesc.Location = new Point(110, 370);
             lblCapooDesc.TextAlign = ContentAlignment.MiddleCenter;
 
             Button btnSelectCapoo = new Button();
             btnSelectCapoo.Text = "選擇咖波";
             btnSelectCapoo.Font = new Font("Arial", 16, FontStyle.Bold);
             btnSelectCapoo.Size = new Size(150, 50);
-            btnSelectCapoo.Location = new Point(400, 480);
+            btnSelectCapoo.Location = new Point(225, 480);
             btnSelectCapoo.Click += BtnSelectCapoo_Click;
+
+            // ================== 狗狗區塊 ==================
+            PictureBox pbDog = new PictureBox();
+            pbDog.Image = (Image)Properties.Resources.ResourceManager.GetObject("character2");
+            pbDog.SizeMode = PictureBoxSizeMode.Zoom;
+            pbDog.Size = new Size(200, 200);
+            pbDog.Location = new Point(550, 150);
+
+            Label lblDogDesc = new Label();
+            lblDogDesc.Text = "角色：狗狗\n技能：每局限一次。抽牌前讓狗狗看下一張牌，\n你可以決定要正常把這張牌「拿走」，\n還是叫牠「吐掉」並改抽下一張未知的牌。";
+            lblDogDesc.Font = new Font("Arial", 14, FontStyle.Bold);
+            lblDogDesc.ForeColor = Color.White;
+            lblDogDesc.AutoSize = true;
+            lblDogDesc.Location = new Point(460, 370);
+            lblDogDesc.TextAlign = ContentAlignment.MiddleCenter;
+
+            Button btnSelectDog = new Button();
+            btnSelectDog.Text = "選擇狗狗";
+            btnSelectDog.Font = new Font("Arial", 16, FontStyle.Bold);
+            btnSelectDog.Size = new Size(150, 50);
+            btnSelectDog.Location = new Point(575, 480);
+            btnSelectDog.Click += BtnSelectDog_Click;
 
             panelCharacterScreen.Controls.Add(lblSelectTitle);
             panelCharacterScreen.Controls.Add(pbCapoo);
             panelCharacterScreen.Controls.Add(lblCapooDesc);
             panelCharacterScreen.Controls.Add(btnSelectCapoo);
+            panelCharacterScreen.Controls.Add(pbDog);
+            panelCharacterScreen.Controls.Add(lblDogDesc);
+            panelCharacterScreen.Controls.Add(btnSelectDog);
+
             this.Controls.Add(panelCharacterScreen);
         }
 
         private void BtnSelectCapoo_Click(object sender, EventArgs e)
         {
             isCapooSelected = true;
+            isDogSelected = false;
+            panelCharacterScreen.Visible = false;
+            StartBettingPhase();
+        }
+
+        private void BtnSelectDog_Click(object sender, EventArgs e)
+        {
+            isDogSelected = true;
+            isCapooSelected = false;
             panelCharacterScreen.Visible = false;
             StartBettingPhase();
         }
@@ -219,7 +259,7 @@ namespace _1121538_徐霈綺_CardGame
         private void SetupUI()
         {
             this.Text = "21點遊戲 (Blackjack)";
-            this.Size = new Size(950, 650); // 增加視窗寬度與高度
+            this.Size = new Size(950, 650);
             this.BackColor = Color.DarkGreen;
 
             btnHit.Text = "抽牌 (Hit)";
@@ -228,14 +268,23 @@ namespace _1121538_徐霈綺_CardGame
             btnHit.Click += BtnHit_Click;
 
             btnStand.Text = "停牌 (Stand)";
-            btnStand.Location = new Point(170, 540); // 增加間距
+            btnStand.Location = new Point(170, 540);
             btnStand.Size = new Size(100, 40);
             btnStand.Click += BtnStand_Click;
 
             btnRestart.Text = "下一局 / 重新開始";
-            btnRestart.Location = new Point(290, 540); // 增加間距
-            btnRestart.Size = new Size(130, 40); // 加大按鈕
+            btnRestart.Location = new Point(290, 540);
+            btnRestart.Size = new Size(130, 40);
             btnRestart.Click += BtnRestart_Click;
+
+            // 狗狗技能專屬按鈕
+            btnDogSkill.Text = "狗狗挖寶技能";
+            btnDogSkill.Location = new Point(230, 255);
+            btnDogSkill.Size = new Size(110, 35);
+            btnDogSkill.Font = new Font("Arial", 10, FontStyle.Bold);
+            btnDogSkill.BackColor = Color.LightYellow;
+            btnDogSkill.Click += BtnDogSkill_Click;
+            btnDogSkill.Visible = false; // 初始隱藏
 
             lblDealerScore.Text = "莊家點數: ?";
             lblDealerScore.Location = new Point(50, 30);
@@ -244,7 +293,7 @@ namespace _1121538_徐霈綺_CardGame
             lblDealerScore.Font = new Font("Arial", 14, FontStyle.Bold);
 
             panelDealer.Location = new Point(50, 60);
-            panelDealer.Size = new Size(800, 150); // 增加寬度
+            panelDealer.Size = new Size(800, 150);
 
             lblPlayerScore.Text = "玩家點數: 0";
             lblPlayerScore.Location = new Point(50, 260);
@@ -253,69 +302,63 @@ namespace _1121538_徐霈綺_CardGame
             lblPlayerScore.Font = new Font("Arial", 14, FontStyle.Bold);
 
             panelPlayer.Location = new Point(50, 290);
-            panelPlayer.Size = new Size(800, 150); // 增加寬度
+            panelPlayer.Size = new Size(800, 150);
 
             lblResult.Text = "";
-            lblResult.Location = new Point(450, 545); // 往下移
+            lblResult.Location = new Point(450, 545);
             lblResult.ForeColor = Color.Yellow;
             lblResult.AutoSize = true;
             lblResult.Font = new Font("Arial", 16, FontStyle.Bold);
 
-            // 建立牌堆厚度效果 (底部的幾張牌)
+            // 建立牌堆厚度效果
             for (int i = 3; i > 0; i--)
             {
                 PictureBox deckBackground = new PictureBox();
                 deckBackground.Image = Properties.Resources.back;
                 deckBackground.SizeMode = PictureBoxSizeMode.StretchImage;
                 deckBackground.Size = new Size(100, 140);
-                // 產生稍微錯開的堆疊效果
-                deckBackground.Location = new Point(800 + i * 2, 180 - i * 2); // 往右移
+                deckBackground.Location = new Point(800 + i * 2, 180 - i * 2);
                 this.Controls.Add(deckBackground);
             }
 
-            // 設置牌堆圖示 (最上面那一張)
             pbDeck.Image = Properties.Resources.back;
             pbDeck.SizeMode = PictureBoxSizeMode.StretchImage;
             pbDeck.Size = new Size(100, 140);
-            pbDeck.Location = new Point(800, 180); // 往右移
+            pbDeck.Location = new Point(800, 180);
 
-            // 籌碼標籤
             lblTotalChips.Text = "總籌碼: " + totalChips;
-            lblTotalChips.Location = new Point(50, 480); // 調整位置
+            lblTotalChips.Location = new Point(50, 480);
             lblTotalChips.ForeColor = Color.White;
             lblTotalChips.AutoSize = true;
             lblTotalChips.Font = new Font("Arial", 12, FontStyle.Bold);
 
             lblCurrentBet.Text = "目前下注: " + currentBet;
-            lblCurrentBet.Location = new Point(200, 480); // 調整位置
+            lblCurrentBet.Location = new Point(200, 480);
             lblCurrentBet.ForeColor = Color.Yellow;
             lblCurrentBet.AutoSize = true;
             lblCurrentBet.Font = new Font("Arial", 12, FontStyle.Bold);
 
-            // 發牌按鈕
             btnDeal.Text = "確認下注 / 發牌";
-            btnDeal.Location = new Point(780, 475); // 向右移
+            btnDeal.Location = new Point(780, 475);
             btnDeal.Size = new Size(120, 40);
             btnDeal.Click += BtnDeal_Click;
 
-            // 下注按鈕
             int[] betAmounts = { 100, 50, 25, 10, 5 };
             for (int i = 0; i < betAmounts.Length; i++)
             {
                 Button btnBet = new Button();
                 btnBet.Text = "+" + betAmounts[i].ToString();
                 btnBet.Tag = betAmounts[i];
-                btnBet.Location = new Point(350 + i * 65, 480); // 調整間距為 65
-                btnBet.Size = new Size(55, 30); // 微調大小
+                btnBet.Location = new Point(350 + i * 65, 480);
+                btnBet.Size = new Size(55, 30);
                 btnBet.Click += BtnBet_Click;
                 betButtons.Add(btnBet);
                 this.Controls.Add(btnBet);
             }
 
-            // All in 按鈕
             Button btnBetAllIn = new Button();
             btnBetAllIn.Text = "All In";
-            btnBetAllIn.Tag = -1; // -1 代表 All In
+            btnBetAllIn.Tag = -1;
             btnBetAllIn.Location = new Point(350 + 5 * 65, 480);
             btnBetAllIn.Size = new Size(60, 30);
             btnBetAllIn.Click += BtnBet_Click;
@@ -325,7 +368,7 @@ namespace _1121538_徐霈綺_CardGame
             this.Controls.Add(lblTotalChips);
             this.Controls.Add(lblCurrentBet);
             this.Controls.Add(btnDeal);
-
+            this.Controls.Add(btnDogSkill); // 加入狗狗技能按鈕
             this.Controls.Add(btnHit);
             this.Controls.Add(btnStand);
             this.Controls.Add(btnRestart);
@@ -334,8 +377,8 @@ namespace _1121538_徐霈綺_CardGame
             this.Controls.Add(lblPlayerScore);
             this.Controls.Add(panelPlayer);
             this.Controls.Add(lblResult);
-            this.Controls.Add(pbDeck); // 加入畫面
-            pbDeck.BringToFront(); // 確保最上面的牌在最上層
+            this.Controls.Add(pbDeck);
+            pbDeck.BringToFront();
         }
 
         private void InitializeDeck()
@@ -359,7 +402,7 @@ namespace _1121538_徐霈綺_CardGame
         {
             int value = ((cardIndex - 1) / 4) + 1;
             if (value > 10) return 10;
-            if (value == 1) return 11; // 預設A為11
+            if (value == 1) return 11;
             return value;
         }
 
@@ -394,6 +437,7 @@ namespace _1121538_徐霈綺_CardGame
 
             btnHit.Enabled = false;
             btnStand.Enabled = false;
+            btnDogSkill.Visible = false; // 隱藏技能按鈕
             btnRestart.Enabled = false;
             btnDeal.Enabled = true;
 
@@ -436,7 +480,9 @@ namespace _1121538_徐霈綺_CardGame
                 return;
             }
 
-            capooSkillUsed = false; // 重置咖波技能狀態
+            // 重置技能狀態
+            capooSkillUsed = false;
+            dogSkillUsed = false;
 
             btnDeal.Enabled = false;
             foreach (var btn in betButtons)
@@ -450,6 +496,12 @@ namespace _1121538_徐霈綺_CardGame
             btnHit.Enabled = true;
             btnStand.Enabled = true;
 
+            if (isDogSelected)
+            {
+                btnDogSkill.Visible = true;
+                btnDogSkill.Enabled = true;
+            }
+
             await DrawCard(playerHand, panelPlayer, false);
             await DrawCard(dealerHand, panelDealer, true);
             await DrawCard(playerHand, panelPlayer, false);
@@ -462,28 +514,23 @@ namespace _1121538_徐霈綺_CardGame
         private async Task DrawCard(List<int> hand, Panel panel, bool isHidden)
         {
             PlayAudio(takeCardTempFilePath);
-            
+
             int card = deck[0];
             deck.RemoveAt(0);
             hand.Add(card);
 
-            // 目標在 Panel 中的相對位置
             Point targetLocation = new Point((hand.Count - 1) * 30, 0);
-
-            // 計算目標在 Form 中的絕對座標，以處理動畫軌跡
             Point targetFormLocation = panel.PointToScreen(targetLocation);
             targetFormLocation = this.PointToClient(targetFormLocation);
 
-            // 建立用來跑動畫的虛擬卡片
             PictureBox animatingCard = new PictureBox();
             animatingCard.Size = new Size(100, 140);
             animatingCard.SizeMode = PictureBoxSizeMode.StretchImage;
-            animatingCard.Image = Properties.Resources.back; // 飛行中都是背面
+            animatingCard.Image = Properties.Resources.back;
             animatingCard.Location = pbDeck.Location;
             this.Controls.Add(animatingCard);
             animatingCard.BringToFront();
 
-            // 動畫迴圈
             int steps = 15;
             float dx = (targetFormLocation.X - animatingCard.Location.X) / (float)steps;
             float dy = (targetFormLocation.Y - animatingCard.Location.Y) / (float)steps;
@@ -498,16 +545,14 @@ namespace _1121538_徐霈綺_CardGame
                 await Task.Delay(15);
             }
 
-            // 動畫結束，移除虛擬卡片
             this.Controls.Remove(animatingCard);
             animatingCard.Dispose();
 
-            // 正式將卡片加入 Panel 中
             PictureBox pb = new PictureBox();
             pb.SizeMode = PictureBoxSizeMode.StretchImage;
             pb.Size = new Size(100, 140);
             pb.Location = targetLocation;
-            
+
             if (isHidden)
             {
                 pb.Image = Properties.Resources.back;
@@ -548,7 +593,8 @@ namespace _1121538_徐霈綺_CardGame
             }
         }
 
-        private async void BtnHit_Click(object sender, EventArgs e)
+        // 將抽牌結算邏輯獨立出來，以供一般Hit及狗狗技能共用
+        private async Task ProcessPlayerHit()
         {
             await DrawCard(playerHand, panelPlayer, false);
             UpdateScores(false);
@@ -557,7 +603,7 @@ namespace _1121538_徐霈綺_CardGame
             {
                 if (isCapooSelected && !capooSkillUsed)
                 {
-                    MessageBox.Show("咖波發動技能！「吃掉」了導致爆牌的那張牌！");
+                    MessageBox.Show("咖波發動技能！「吃掉」了導致爆牌的那張牌！", "技能發動", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     capooSkillUsed = true;
 
                     // 退回最後一張牌
@@ -581,7 +627,7 @@ namespace _1121538_徐霈綺_CardGame
                     }
 
                     UpdateScores(false);
-                    BtnStand_Click(sender, e); // 強制停牌
+                    BtnStand_Click(null, EventArgs.Empty);
                 }
                 else
                 {
@@ -590,10 +636,45 @@ namespace _1121538_徐霈綺_CardGame
             }
         }
 
+        private async void BtnHit_Click(object sender, EventArgs e)
+        {
+            await ProcessPlayerHit();
+        }
+
+        // 狗狗預知牌庫技能
+        private async void BtnDogSkill_Click(object sender, EventArgs e)
+        {
+            if (dogSkillUsed || deck.Count == 0) return;
+
+            int nextCard = deck[0];
+            int cardValue = GetCardValue(nextCard);
+
+            DialogResult result = MessageBox.Show(
+                $"汪汪！柴柴衝進牌堆挖寶，下張牌的點數是 {cardValue}！\n\n按下「是(Yes)」乖乖拿走這張牌\n按下「否(No)」叫柴柴呸掉並抽下一張未知牌",
+                "狗狗挖寶技能",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            dogSkillUsed = true;
+            btnDogSkill.Enabled = false;
+
+            if (result == DialogResult.Yes)
+            {
+                await ProcessPlayerHit();
+            }
+            else
+            {
+                MessageBox.Show("呸！柴柴把牌吐掉了，你改抽了下一張未知的牌。", "技能發動", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                deck.RemoveAt(0); // 棄置剛剛偷看的牌
+                await ProcessPlayerHit(); // 抽取更新後的頂部牌
+            }
+        }
+
         private async void BtnStand_Click(object sender, EventArgs e)
         {
             btnHit.Enabled = false;
             btnStand.Enabled = false;
+            btnDogSkill.Enabled = false;
 
             // 翻開莊家暗牌
             PictureBox hiddenPb = panelDealer.Controls.Find("hiddenCard", false).FirstOrDefault() as PictureBox;
@@ -615,6 +696,7 @@ namespace _1121538_徐霈綺_CardGame
             int playerScore = CalculateScore(playerHand);
             int dealerScore = CalculateScore(dealerHand);
 
+            // 若玩家已經先爆牌，不會進到這裡，所以只檢查莊家
             if (dealerScore > 21)
             {
                 EndGame("莊家爆牌！玩家獲勝！", 1);
@@ -637,21 +719,21 @@ namespace _1121538_徐霈綺_CardGame
         {
             if (winStatus == 1)
             {
-                totalChips += currentBet * 2; // 贏回下注及獎金
+                totalChips += currentBet * 2;
             }
             else if (winStatus == 0)
             {
-                totalChips += currentBet; // 退回下注
+                totalChips += currentBet;
             }
-            // 莊家獲勝時籌碼已被扣除
+
             currentBet = 0;
             UpdateChipsUI();
 
             lblResult.Text = message;
             btnHit.Enabled = false;
             btnStand.Enabled = false;
+            btnDogSkill.Enabled = false;
 
-            // 如果遊戲結束時暗牌還沒翻開，翻開它
             PictureBox hiddenPb = panelDealer.Controls.Find("hiddenCard", false).FirstOrDefault() as PictureBox;
             if (hiddenPb != null)
             {
