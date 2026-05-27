@@ -187,7 +187,7 @@ namespace _1121538_徐霈綺_CardGame
             panelCharacterScreen.Visible = false;
 
             Label lblSelectTitle = new Label();
-            lblSelectTitle.Text = "請選擇角色";
+            lblSelectTitle.Text = "請選擇你的角色";
             lblSelectTitle.Font = new Font("Arial", 32, FontStyle.Bold);
             lblSelectTitle.ForeColor = Color.Yellow;
             lblSelectTitle.AutoSize = true;
