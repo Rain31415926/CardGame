@@ -55,7 +55,12 @@ namespace _1121538_徐霈綺_CardGame
         private bool dogSkillUsed = false;
         private Button btnDogSkill = new Button();
 
-        private bool isEldritchSelected = false; // 新增：不可名狀之物
+        private bool isEldritchSelected = false;
+
+        // 垃圾話系統相關
+        private Timer hesitationTimer = new Timer();
+        private Label lblDealerTalk = new Label();
+        private Random randomizer = new Random();
 
         private string takeCardTempFilePath;
         private string placeCardTempFilePath;
@@ -218,7 +223,7 @@ namespace _1121538_徐霈綺_CardGame
             pbDog.Location = new Point(380, 120);
 
             Label lblDogDesc = new Label();
-            lblDogDesc.Text = "角色：狗狗\n技能：偷看挖寶\n抽牌前讓狗狗看下一張牌，\n可決定正常拿走或棄置重抽。\n每局限一次。";
+            lblDogDesc.Text = "角色：忠心柴柴\n技能：偷看挖寶\n抽牌前讓狗狗看下一張牌，\n可決定正常拿走或棄置重抽。\n每局限一次。";
             lblDogDesc.Font = new Font("Arial", 12, FontStyle.Bold);
             lblDogDesc.ForeColor = Color.White;
             lblDogDesc.AutoSize = true;
@@ -349,6 +354,19 @@ namespace _1121538_徐霈綺_CardGame
             lblResult.AutoSize = true;
             lblResult.Font = new Font("Arial", 16, FontStyle.Bold);
 
+            // 垃圾話標籤設定
+            lblDealerTalk.Text = "";
+            lblDealerTalk.Location = new Point(320, 215); // 放在莊家牌跟玩家牌中間
+            lblDealerTalk.ForeColor = Color.Cyan;
+            lblDealerTalk.AutoSize = true;
+            lblDealerTalk.Font = new Font("Microsoft JhengHei", 16, FontStyle.Italic | FontStyle.Bold);
+            this.Controls.Add(lblDealerTalk);
+            lblDealerTalk.BringToFront();
+
+            // 設定垃圾話計時器 (5秒 = 5000毫秒)
+            hesitationTimer.Interval = 5000;
+            hesitationTimer.Tick += HesitationTimer_Tick;
+
             for (int i = 3; i > 0; i--)
             {
                 PictureBox deckBackground = new PictureBox();
@@ -419,6 +437,52 @@ namespace _1121538_徐霈綺_CardGame
             pbDeck.BringToFront();
         }
 
+        // ================== 垃圾話計時器與邏輯 ==================
+        private void ResetHesitationTimer()
+        {
+            lblDealerTalk.Text = "";
+            hesitationTimer.Stop();
+            hesitationTimer.Start();
+        }
+
+        private void StopHesitationTimer()
+        {
+            lblDealerTalk.Text = "";
+            hesitationTimer.Stop();
+        }
+
+        private void HesitationTimer_Tick(object sender, EventArgs e)
+        {
+            // 根據不同角色給予不同的嘲諷
+            if (isEldritchSelected)
+            {
+                string[] eldritchTalks = {
+                    "放棄掙扎吧...",
+                    "理智正在流失...",
+                    "你看不透這片黑霧的...",
+                    "抽牌...投入深淵的懷抱吧..."
+                };
+                lblDealerTalk.ForeColor = Color.MediumPurple;
+                lblDealerTalk.Text = "『" + eldritchTalks[randomizer.Next(eldritchTalks.Length)] + "』";
+            }
+            else
+            {
+                string[] trashTalks = {
+                    "怎麼啦？怕爆牌嗎？再抽一張啦！",
+                    "才這點分數就想贏？算了吧，快抽牌！",
+                    "猶豫什麼？幸運女神在對你微笑呢，Hit！",
+                    "我看你這牌...不抽絕對會輸喔。",
+                    "不敢抽？那這局的籌碼我就收下囉！",
+                    "快點決定啦，後面的客人在等呢！"
+                };
+                lblDealerTalk.ForeColor = Color.Cyan;
+                lblDealerTalk.Text = "莊家：「" + trashTalks[randomizer.Next(trashTalks.Length)] + "」";
+            }
+
+            // 嘲諷一次後先暫停計時，等玩家下一步動作再重置，避免瘋狂洗頻
+            hesitationTimer.Stop();
+        }
+
         private void InitializeDeck()
         {
             deck.Clear();
@@ -426,8 +490,7 @@ namespace _1121538_徐霈綺_CardGame
             {
                 deck.Add(i);
             }
-            Random rnd = new Random();
-            deck = deck.OrderBy(x => rnd.Next()).ToList();
+            deck = deck.OrderBy(x => randomizer.Next()).ToList();
         }
 
         private Image GetCardImage(int cardIndex)
@@ -464,6 +527,8 @@ namespace _1121538_徐霈綺_CardGame
 
         private void StartBettingPhase()
         {
+            StopHesitationTimer(); // 確保下注階段不會跳出垃圾話
+
             playerHand.Clear();
             dealerHand.Clear();
             panelPlayer.Controls.Clear();
@@ -551,6 +616,12 @@ namespace _1121538_徐霈綺_CardGame
 
             UpdateScores(false);
             CheckBlackjack();
+
+            // 發牌結束，玩家可以開始動作，啟動猶豫計時器
+            if (CalculateScore(playerHand) < 21)
+            {
+                ResetHesitationTimer();
+            }
         }
 
         private async Task DrawCard(List<int> hand, Panel panel, bool isHidden)
@@ -623,7 +694,6 @@ namespace _1121538_徐霈綺_CardGame
             {
                 if (isEldritchSelected)
                 {
-                    // 因為全部都暗牌，所以不顯示任何點數
                     lblDealerScore.Text = "莊家點數: ? + ?";
                 }
                 else
@@ -645,6 +715,8 @@ namespace _1121538_徐霈綺_CardGame
 
         private async Task ProcessPlayerHit()
         {
+            StopHesitationTimer(); // 玩家有動作，先暫停計時並清除文字
+
             await DrawCard(playerHand, panelPlayer, false);
             UpdateScores(false);
 
@@ -681,6 +753,11 @@ namespace _1121538_徐霈綺_CardGame
                     EndGame("玩家爆牌！莊家獲勝！", -1);
                 }
             }
+            else
+            {
+                // 玩家抽牌後還沒爆牌，重新開始 5 秒猶豫倒數
+                ResetHesitationTimer();
+            }
         }
 
         private async void BtnHit_Click(object sender, EventArgs e)
@@ -691,6 +768,8 @@ namespace _1121538_徐霈綺_CardGame
         private async void BtnDogSkill_Click(object sender, EventArgs e)
         {
             if (dogSkillUsed || deck.Count == 0) return;
+
+            StopHesitationTimer(); // 發動技能時先停止計時
 
             int nextCard = deck[0];
             int cardValue = GetCardValue(nextCard);
@@ -718,11 +797,12 @@ namespace _1121538_徐霈綺_CardGame
 
         private async void BtnStand_Click(object sender, EventArgs e)
         {
+            StopHesitationTimer(); // 玩家選擇停牌，停止計時
+
             btnHit.Enabled = false;
             btnStand.Enabled = false;
             btnDogSkill.Enabled = false;
 
-            // 尋找並翻開莊家所有暗牌 (原本只有1張，現在可能有2張以上)
             var hiddenCards = panelDealer.Controls.Find("hiddenCard", false).OfType<PictureBox>().ToList();
             foreach (var hiddenPb in hiddenCards)
             {
@@ -762,6 +842,8 @@ namespace _1121538_徐霈綺_CardGame
 
         private void EndGame(string message, int winStatus)
         {
+            StopHesitationTimer(); // 確保遊戲結束時不會跳出垃圾話
+
             if (winStatus == 1)
             {
                 totalChips += currentBet * 2;
@@ -779,7 +861,6 @@ namespace _1121538_徐霈綺_CardGame
             btnStand.Enabled = false;
             btnDogSkill.Enabled = false;
 
-            // 如果遊戲強制結束，確保翻開莊家所有暗牌
             var hiddenCards = panelDealer.Controls.Find("hiddenCard", false).OfType<PictureBox>().ToList();
             if (hiddenCards.Count > 0)
             {
