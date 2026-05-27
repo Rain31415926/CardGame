@@ -29,7 +29,7 @@ namespace _1121538_徐霈綺_CardGame
         private Label lblResult = new Label();
         private Panel panelPlayer = new Panel();
         private Panel panelDealer = new Panel();
-        private PictureBox pbDeck = new PictureBox(); // 新增實體牌堆
+        private PictureBox pbDeck = new PictureBox();
 
         // 籌碼與下注相關
         private int totalChips = 500;
@@ -47,12 +47,15 @@ namespace _1121538_徐霈綺_CardGame
 
         // 選擇角色畫面與技能相關
         private Panel panelCharacterScreen = new Panel();
+
         private bool isCapooSelected = false;
         private bool capooSkillUsed = false;
 
         private bool isDogSelected = false;
         private bool dogSkillUsed = false;
-        private Button btnDogSkill = new Button(); // 狗狗技能按鈕
+        private Button btnDogSkill = new Button();
+
+        private bool isEldritchSelected = false; // 新增：不可名狀之物
 
         private string takeCardTempFilePath;
         private string placeCardTempFilePath;
@@ -180,54 +183,76 @@ namespace _1121538_徐霈綺_CardGame
 
             Label lblSelectTitle = new Label();
             lblSelectTitle.Text = "請選擇角色";
-            lblSelectTitle.Font = new Font("Arial", 36, FontStyle.Bold);
+            lblSelectTitle.Font = new Font("Arial", 32, FontStyle.Bold);
             lblSelectTitle.ForeColor = Color.Yellow;
             lblSelectTitle.AutoSize = true;
-            lblSelectTitle.Location = new Point(330, 50);
+            lblSelectTitle.Location = new Point(340, 30);
 
             // ================== 咖波區塊 ==================
             PictureBox pbCapoo = new PictureBox();
             pbCapoo.Image = (Image)Properties.Resources.ResourceManager.GetObject("character1");
             pbCapoo.SizeMode = PictureBoxSizeMode.Zoom;
-            pbCapoo.Size = new Size(200, 200);
-            pbCapoo.Location = new Point(200, 150);
+            pbCapoo.Size = new Size(180, 180);
+            pbCapoo.Location = new Point(70, 120);
 
             Label lblCapooDesc = new Label();
-            lblCapooDesc.Text = "角色：咖波\n技能：每局限發動一次。當抽牌導致爆牌時，\n強制「吃掉」最後抽到的那張牌，讓點數退回，\n並強制進入「停牌」。";
-            lblCapooDesc.Font = new Font("Arial", 14, FontStyle.Bold);
+            lblCapooDesc.Text = "角色：咖波\n技能：吃牌\n抽牌導致爆牌時，強制「吃掉」\n最後抽的牌，並強制停牌。\n每局限一次。";
+            lblCapooDesc.Font = new Font("Arial", 12, FontStyle.Bold);
             lblCapooDesc.ForeColor = Color.White;
             lblCapooDesc.AutoSize = true;
-            lblCapooDesc.Location = new Point(110, 370);
+            lblCapooDesc.Location = new Point(45, 330);
             lblCapooDesc.TextAlign = ContentAlignment.MiddleCenter;
 
             Button btnSelectCapoo = new Button();
             btnSelectCapoo.Text = "選擇咖波";
-            btnSelectCapoo.Font = new Font("Arial", 16, FontStyle.Bold);
-            btnSelectCapoo.Size = new Size(150, 50);
-            btnSelectCapoo.Location = new Point(225, 480);
+            btnSelectCapoo.Font = new Font("Arial", 14, FontStyle.Bold);
+            btnSelectCapoo.Size = new Size(140, 45);
+            btnSelectCapoo.Location = new Point(90, 480);
             btnSelectCapoo.Click += BtnSelectCapoo_Click;
 
             // ================== 狗狗區塊 ==================
             PictureBox pbDog = new PictureBox();
             pbDog.Image = (Image)Properties.Resources.ResourceManager.GetObject("character2");
             pbDog.SizeMode = PictureBoxSizeMode.Zoom;
-            pbDog.Size = new Size(200, 200);
-            pbDog.Location = new Point(550, 150);
+            pbDog.Size = new Size(180, 180);
+            pbDog.Location = new Point(380, 120);
 
             Label lblDogDesc = new Label();
-            lblDogDesc.Text = "角色：狗狗\n技能：每局限一次。抽牌前讓狗狗看下一張牌，\n你可以決定要正常把這張牌「拿走」，\n還是叫牠「吐掉」並改抽下一張未知的牌。";
-            lblDogDesc.Font = new Font("Arial", 14, FontStyle.Bold);
+            lblDogDesc.Text = "角色：狗狗\n技能：偷看挖寶\n抽牌前讓狗狗看下一張牌，\n可決定正常拿走或棄置重抽。\n每局限一次。";
+            lblDogDesc.Font = new Font("Arial", 12, FontStyle.Bold);
             lblDogDesc.ForeColor = Color.White;
             lblDogDesc.AutoSize = true;
-            lblDogDesc.Location = new Point(460, 370);
+            lblDogDesc.Location = new Point(355, 330);
             lblDogDesc.TextAlign = ContentAlignment.MiddleCenter;
 
             Button btnSelectDog = new Button();
             btnSelectDog.Text = "選擇狗狗";
-            btnSelectDog.Font = new Font("Arial", 16, FontStyle.Bold);
-            btnSelectDog.Size = new Size(150, 50);
-            btnSelectDog.Location = new Point(575, 480);
+            btnSelectDog.Font = new Font("Arial", 14, FontStyle.Bold);
+            btnSelectDog.Size = new Size(140, 45);
+            btnSelectDog.Location = new Point(400, 480);
             btnSelectDog.Click += BtnSelectDog_Click;
+
+            // ================== 不可名狀之物區塊 ==================
+            PictureBox pbEldritch = new PictureBox();
+            pbEldritch.Image = (Image)Properties.Resources.ResourceManager.GetObject("character3");
+            pbEldritch.SizeMode = PictureBoxSizeMode.Zoom;
+            pbEldritch.Size = new Size(180, 180);
+            pbEldritch.Location = new Point(690, 120);
+
+            Label lblEldritchDesc = new Label();
+            lblEldritchDesc.Text = "角色：不可名狀\n技能：深淵盲牌\n回合開始即發動。莊家的明牌\n將被黑霧強制覆蓋，玩家必須\n在未知底細的情況下盲打。";
+            lblEldritchDesc.Font = new Font("Arial", 12, FontStyle.Bold);
+            lblEldritchDesc.ForeColor = Color.White;
+            lblEldritchDesc.AutoSize = true;
+            lblEldritchDesc.Location = new Point(655, 330);
+            lblEldritchDesc.TextAlign = ContentAlignment.MiddleCenter;
+
+            Button btnSelectEldritch = new Button();
+            btnSelectEldritch.Text = "選擇不可名狀";
+            btnSelectEldritch.Font = new Font("Arial", 14, FontStyle.Bold);
+            btnSelectEldritch.Size = new Size(140, 45);
+            btnSelectEldritch.Location = new Point(710, 480);
+            btnSelectEldritch.Click += BtnSelectEldritch_Click;
 
             panelCharacterScreen.Controls.Add(lblSelectTitle);
             panelCharacterScreen.Controls.Add(pbCapoo);
@@ -236,6 +261,9 @@ namespace _1121538_徐霈綺_CardGame
             panelCharacterScreen.Controls.Add(pbDog);
             panelCharacterScreen.Controls.Add(lblDogDesc);
             panelCharacterScreen.Controls.Add(btnSelectDog);
+            panelCharacterScreen.Controls.Add(pbEldritch);
+            panelCharacterScreen.Controls.Add(lblEldritchDesc);
+            panelCharacterScreen.Controls.Add(btnSelectEldritch);
 
             this.Controls.Add(panelCharacterScreen);
         }
@@ -244,6 +272,7 @@ namespace _1121538_徐霈綺_CardGame
         {
             isCapooSelected = true;
             isDogSelected = false;
+            isEldritchSelected = false;
             panelCharacterScreen.Visible = false;
             StartBettingPhase();
         }
@@ -251,6 +280,16 @@ namespace _1121538_徐霈綺_CardGame
         private void BtnSelectDog_Click(object sender, EventArgs e)
         {
             isDogSelected = true;
+            isCapooSelected = false;
+            isEldritchSelected = false;
+            panelCharacterScreen.Visible = false;
+            StartBettingPhase();
+        }
+
+        private void BtnSelectEldritch_Click(object sender, EventArgs e)
+        {
+            isEldritchSelected = true;
+            isDogSelected = false;
             isCapooSelected = false;
             panelCharacterScreen.Visible = false;
             StartBettingPhase();
@@ -284,7 +323,7 @@ namespace _1121538_徐霈綺_CardGame
             btnDogSkill.Font = new Font("Arial", 10, FontStyle.Bold);
             btnDogSkill.BackColor = Color.LightYellow;
             btnDogSkill.Click += BtnDogSkill_Click;
-            btnDogSkill.Visible = false; // 初始隱藏
+            btnDogSkill.Visible = false;
 
             lblDealerScore.Text = "莊家點數: ?";
             lblDealerScore.Location = new Point(50, 30);
@@ -310,7 +349,6 @@ namespace _1121538_徐霈綺_CardGame
             lblResult.AutoSize = true;
             lblResult.Font = new Font("Arial", 16, FontStyle.Bold);
 
-            // 建立牌堆厚度效果
             for (int i = 3; i > 0; i--)
             {
                 PictureBox deckBackground = new PictureBox();
@@ -368,7 +406,7 @@ namespace _1121538_徐霈綺_CardGame
             this.Controls.Add(lblTotalChips);
             this.Controls.Add(lblCurrentBet);
             this.Controls.Add(btnDeal);
-            this.Controls.Add(btnDogSkill); // 加入狗狗技能按鈕
+            this.Controls.Add(btnDogSkill);
             this.Controls.Add(btnHit);
             this.Controls.Add(btnStand);
             this.Controls.Add(btnRestart);
@@ -437,7 +475,7 @@ namespace _1121538_徐霈綺_CardGame
 
             btnHit.Enabled = false;
             btnStand.Enabled = false;
-            btnDogSkill.Visible = false; // 隱藏技能按鈕
+            btnDogSkill.Visible = false;
             btnRestart.Enabled = false;
             btnDeal.Enabled = true;
 
@@ -480,7 +518,6 @@ namespace _1121538_徐霈綺_CardGame
                 return;
             }
 
-            // 重置技能狀態
             capooSkillUsed = false;
             dogSkillUsed = false;
 
@@ -492,7 +529,12 @@ namespace _1121538_徐霈綺_CardGame
             btnRestart.Enabled = true;
 
             InitializeDeck();
-            lblResult.Text = "";
+
+            if (isEldritchSelected)
+                lblResult.Text = "深淵黑霧籠罩...請盲打";
+            else
+                lblResult.Text = "";
+
             btnHit.Enabled = true;
             btnStand.Enabled = true;
 
@@ -503,9 +545,9 @@ namespace _1121538_徐霈綺_CardGame
             }
 
             await DrawCard(playerHand, panelPlayer, false);
-            await DrawCard(dealerHand, panelDealer, true);
+            await DrawCard(dealerHand, panelDealer, true); // 莊家第一張永遠暗牌
             await DrawCard(playerHand, panelPlayer, false);
-            await DrawCard(dealerHand, panelDealer, false);
+            await DrawCard(dealerHand, panelDealer, isEldritchSelected); // 不可名狀：第二張也暗牌
 
             UpdateScores(false);
             CheckBlackjack();
@@ -579,8 +621,16 @@ namespace _1121538_徐霈綺_CardGame
             }
             else
             {
-                int visibleScore = CalculateScore(dealerHand.Skip(1).ToList());
-                lblDealerScore.Text = "莊家點數: " + visibleScore + " + ?";
+                if (isEldritchSelected)
+                {
+                    // 因為全部都暗牌，所以不顯示任何點數
+                    lblDealerScore.Text = "莊家點數: ? + ?";
+                }
+                else
+                {
+                    int visibleScore = CalculateScore(dealerHand.Skip(1).ToList());
+                    lblDealerScore.Text = "莊家點數: " + visibleScore + " + ?";
+                }
             }
         }
 
@@ -593,7 +643,6 @@ namespace _1121538_徐霈綺_CardGame
             }
         }
 
-        // 將抽牌結算邏輯獨立出來，以供一般Hit及狗狗技能共用
         private async Task ProcessPlayerHit()
         {
             await DrawCard(playerHand, panelPlayer, false);
@@ -606,10 +655,8 @@ namespace _1121538_徐霈綺_CardGame
                     MessageBox.Show("咖波發動技能！「吃掉」了導致爆牌的那張牌！", "技能發動", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     capooSkillUsed = true;
 
-                    // 退回最後一張牌
                     playerHand.RemoveAt(playerHand.Count - 1);
 
-                    // 移除畫面上的最後一張牌
                     PictureBox lastCardPb = null;
                     int maxX = -1;
                     foreach (Control ctrl in panelPlayer.Controls)
@@ -641,7 +688,6 @@ namespace _1121538_徐霈綺_CardGame
             await ProcessPlayerHit();
         }
 
-        // 狗狗預知牌庫技能
         private async void BtnDogSkill_Click(object sender, EventArgs e)
         {
             if (dogSkillUsed || deck.Count == 0) return;
@@ -665,8 +711,8 @@ namespace _1121538_徐霈綺_CardGame
             else
             {
                 MessageBox.Show("呸！柴柴把牌吐掉了，你改抽了下一張未知的牌。", "技能發動", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                deck.RemoveAt(0); // 棄置剛剛偷看的牌
-                await ProcessPlayerHit(); // 抽取更新後的頂部牌
+                deck.RemoveAt(0);
+                await ProcessPlayerHit();
             }
         }
 
@@ -676,9 +722,9 @@ namespace _1121538_徐霈綺_CardGame
             btnStand.Enabled = false;
             btnDogSkill.Enabled = false;
 
-            // 翻開莊家暗牌
-            PictureBox hiddenPb = panelDealer.Controls.Find("hiddenCard", false).FirstOrDefault() as PictureBox;
-            if (hiddenPb != null)
+            // 尋找並翻開莊家所有暗牌 (原本只有1張，現在可能有2張以上)
+            var hiddenCards = panelDealer.Controls.Find("hiddenCard", false).OfType<PictureBox>().ToList();
+            foreach (var hiddenPb in hiddenCards)
             {
                 hiddenPb.Image = GetCardImage((int)hiddenPb.Tag);
                 hiddenPb.Name = "revealedCard";
@@ -696,7 +742,6 @@ namespace _1121538_徐霈綺_CardGame
             int playerScore = CalculateScore(playerHand);
             int dealerScore = CalculateScore(dealerHand);
 
-            // 若玩家已經先爆牌，不會進到這裡，所以只檢查莊家
             if (dealerScore > 21)
             {
                 EndGame("莊家爆牌！玩家獲勝！", 1);
@@ -734,10 +779,15 @@ namespace _1121538_徐霈綺_CardGame
             btnStand.Enabled = false;
             btnDogSkill.Enabled = false;
 
-            PictureBox hiddenPb = panelDealer.Controls.Find("hiddenCard", false).FirstOrDefault() as PictureBox;
-            if (hiddenPb != null)
+            // 如果遊戲強制結束，確保翻開莊家所有暗牌
+            var hiddenCards = panelDealer.Controls.Find("hiddenCard", false).OfType<PictureBox>().ToList();
+            if (hiddenCards.Count > 0)
             {
-                hiddenPb.Image = GetCardImage((int)hiddenPb.Tag);
+                foreach (var hiddenPb in hiddenCards)
+                {
+                    hiddenPb.Image = GetCardImage((int)hiddenPb.Tag);
+                    hiddenPb.Name = "revealedCard";
+                }
                 UpdateScores(true);
             }
         }
