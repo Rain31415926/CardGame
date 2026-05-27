@@ -286,4 +286,10 @@
   <data name="pic52" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\pic52.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="backmusic" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\freesound_community-8bit-music-for-game-68698.mp3;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="placechip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\oxidvideos-placing-poker-chips-522515.mp3;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

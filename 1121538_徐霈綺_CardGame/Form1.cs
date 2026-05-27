@@ -29,6 +29,7 @@ namespace _1121538_徐霈綺_CardGame
         private Label lblResult = new Label();
         private Panel panelPlayer = new Panel();
         private Panel panelDealer = new Panel();
+        private PictureBox pbDeck = new PictureBox(); // 新增實體牌堆
 
         private string takeCardTempFilePath;
         private string placeCardTempFilePath;
@@ -116,6 +117,24 @@ namespace _1121538_徐霈綺_CardGame
             lblResult.AutoSize = true;
             lblResult.Font = new Font("Arial", 16, FontStyle.Bold);
 
+            // 建立牌堆厚度效果 (底部的幾張牌)
+            for (int i = 3; i > 0; i--)
+            {
+                PictureBox deckBackground = new PictureBox();
+                deckBackground.Image = Properties.Resources.back;
+                deckBackground.SizeMode = PictureBoxSizeMode.StretchImage;
+                deckBackground.Size = new Size(100, 140);
+                // 產生稍微錯開的堆疊效果
+                deckBackground.Location = new Point(650 + i * 2, 180 - i * 2); 
+                this.Controls.Add(deckBackground);
+            }
+
+            // 設置牌堆圖示 (最上面那一張)
+            pbDeck.Image = Properties.Resources.back;
+            pbDeck.SizeMode = PictureBoxSizeMode.StretchImage;
+            pbDeck.Size = new Size(100, 140);
+            pbDeck.Location = new Point(650, 180); // 放在畫面右側中間
+
             this.Controls.Add(btnHit);
             this.Controls.Add(btnStand);
             this.Controls.Add(btnRestart);
@@ -124,6 +143,8 @@ namespace _1121538_徐霈綺_CardGame
             this.Controls.Add(lblPlayerScore);
             this.Controls.Add(panelPlayer);
             this.Controls.Add(lblResult);
+            this.Controls.Add(pbDeck); // 加入畫面
+            pbDeck.BringToFront(); // 確保最上面的牌在最上層
         }
 
         private void InitializeDeck()
@@ -192,16 +213,51 @@ namespace _1121538_徐霈綺_CardGame
         private async Task DrawCard(List<int> hand, Panel panel, bool isHidden)
         {
             PlayAudio(takeCardTempFilePath);
-            await Task.Delay(300); // 模擬抽牌延遲
-
+            
             int card = deck[0];
             deck.RemoveAt(0);
             hand.Add(card);
 
+            // 目標在 Panel 中的相對位置
+            Point targetLocation = new Point((hand.Count - 1) * 30, 0);
+
+            // 計算目標在 Form 中的絕對座標，以處理動畫軌跡
+            Point targetFormLocation = panel.PointToScreen(targetLocation);
+            targetFormLocation = this.PointToClient(targetFormLocation);
+
+            // 建立用來跑動畫的虛擬卡片
+            PictureBox animatingCard = new PictureBox();
+            animatingCard.Size = new Size(100, 140);
+            animatingCard.SizeMode = PictureBoxSizeMode.StretchImage;
+            animatingCard.Image = Properties.Resources.back; // 飛行中都是背面
+            animatingCard.Location = pbDeck.Location;
+            this.Controls.Add(animatingCard);
+            animatingCard.BringToFront();
+
+            // 動畫迴圈
+            int steps = 15;
+            float dx = (targetFormLocation.X - animatingCard.Location.X) / (float)steps;
+            float dy = (targetFormLocation.Y - animatingCard.Location.Y) / (float)steps;
+            float currX = animatingCard.Location.X;
+            float currY = animatingCard.Location.Y;
+
+            for (int i = 0; i < steps; i++)
+            {
+                currX += dx;
+                currY += dy;
+                animatingCard.Location = new Point((int)currX, (int)currY);
+                await Task.Delay(15);
+            }
+
+            // 動畫結束，移除虛擬卡片
+            this.Controls.Remove(animatingCard);
+            animatingCard.Dispose();
+
+            // 正式將卡片加入 Panel 中
             PictureBox pb = new PictureBox();
             pb.SizeMode = PictureBoxSizeMode.StretchImage;
             pb.Size = new Size(100, 140);
-            pb.Location = new Point((hand.Count - 1) * 30, 0);
+            pb.Location = targetLocation;
             
             if (isHidden)
             {

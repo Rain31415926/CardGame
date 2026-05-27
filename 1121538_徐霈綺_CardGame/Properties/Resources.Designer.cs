@@ -71,6 +71,15 @@ namespace _1121538_徐霈綺_CardGame.Properties {
         }
         
         /// <summary>
+        ///   查詢類似 System.IO.MemoryStream 的類型 System.IO.UnmanagedMemoryStream 當地語系化資源。
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream backmusic {
+            get {
+                return ResourceManager.GetStream("backmusic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
         /// </summary>
         internal static System.Drawing.Bitmap Image1 {
@@ -606,6 +615,15 @@ namespace _1121538_徐霈綺_CardGame.Properties {
         internal static System.IO.UnmanagedMemoryStream placecard {
             get {
                 return ResourceManager.GetStream("placecard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 System.IO.MemoryStream 的類型 System.IO.UnmanagedMemoryStream 當地語系化資源。
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream placechip {
+            get {
+                return ResourceManager.GetStream("placechip", resourceCulture);
             }
         }
         
