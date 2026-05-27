@@ -39,6 +39,12 @@ namespace _1121538_徐霈綺_CardGame
         private Button btnDeal = new Button();
         private List<Button> betButtons = new List<Button>();
 
+        // 標題畫面相關
+        private Panel panelTitle = new Panel();
+        private Label lblGameTitle = new Label();
+        private Button btnStartGame = new Button();
+        private string backMusicTempFilePath;
+
         private string takeCardTempFilePath;
         private string placeCardTempFilePath;
         private string placeChipTempFilePath;
@@ -47,8 +53,9 @@ namespace _1121538_徐霈綺_CardGame
         {
             InitializeComponent();
             SetupUI();
+            SetupTitleScreen();
             ExtractAudioFiles();
-            StartBettingPhase();
+            ShowTitleScreen();
         }
 
         private void ExtractAudioFiles()
@@ -56,6 +63,15 @@ namespace _1121538_徐霈綺_CardGame
             takeCardTempFilePath = Path.Combine(Path.GetTempPath(), "takecard.mp3");
             placeCardTempFilePath = Path.Combine(Path.GetTempPath(), "placecard.mp3");
             placeChipTempFilePath = Path.Combine(Path.GetTempPath(), "placechip.mp3");
+            backMusicTempFilePath = Path.Combine(Path.GetTempPath(), "backmusic.mp3");
+
+            if (Properties.Resources.backmusic != null)
+            {
+                using (FileStream fs = new FileStream(backMusicTempFilePath, FileMode.Create, FileAccess.Write))
+                {
+                    Properties.Resources.backmusic.CopyTo(fs);
+                }
+            }
 
             if (Properties.Resources.placechip != null)
             {
@@ -88,6 +104,60 @@ namespace _1121538_徐霈綺_CardGame
                 string command = $"play \"{filePath}\" from 0";
                 mciSendString(command, null, 0, IntPtr.Zero);
             }
+        }
+
+        private void PlayBackgroundMusic(string filePath, int volume = 1000)
+        {
+            if (File.Exists(filePath))
+            {
+                mciSendString($"open \"{filePath}\" type mpegvideo alias bgm", null, 0, IntPtr.Zero);
+                mciSendString($"setaudio bgm volume to {volume}", null, 0, IntPtr.Zero);
+                mciSendString("play bgm repeat", null, 0, IntPtr.Zero);
+            }
+        }
+
+        private void StopBackgroundMusic()
+        {
+            mciSendString("stop bgm", null, 0, IntPtr.Zero);
+            mciSendString("close bgm", null, 0, IntPtr.Zero);
+        }
+
+        private void SetupTitleScreen()
+        {
+            panelTitle.Size = new Size(950, 650);
+            panelTitle.Location = new Point(0, 0);
+            panelTitle.BackColor = Color.DarkGreen;
+
+            lblGameTitle.Text = "21點 (Blackjack)";
+            lblGameTitle.Font = new Font("Arial", 48, FontStyle.Bold);
+            lblGameTitle.ForeColor = Color.Yellow;
+            lblGameTitle.AutoSize = true;
+            lblGameTitle.Location = new Point(200, 150);
+
+            btnStartGame.Text = "開始遊戲";
+            btnStartGame.Font = new Font("Arial", 20, FontStyle.Bold);
+            btnStartGame.Size = new Size(200, 60);
+            btnStartGame.Location = new Point(360, 350);
+            btnStartGame.Click += BtnStartGame_Click;
+
+            panelTitle.Controls.Add(lblGameTitle);
+            panelTitle.Controls.Add(btnStartGame);
+            this.Controls.Add(panelTitle);
+        }
+
+        private void ShowTitleScreen()
+        {
+            panelTitle.BringToFront();
+            panelTitle.Visible = true;
+            PlayBackgroundMusic(backMusicTempFilePath, 1000); // 正常音量
+        }
+
+        private void BtnStartGame_Click(object sender, EventArgs e)
+        {
+            StopBackgroundMusic();
+            panelTitle.Visible = false;
+            PlayBackgroundMusic(backMusicTempFilePath, 300); // 低音量 (範圍約0-1000)
+            StartBettingPhase();
         }
 
         private void SetupUI()
