@@ -45,6 +45,11 @@ namespace _1121538_徐霈綺_CardGame
         private Button btnStartGame = new Button();
         private string backMusicTempFilePath;
 
+        // 選擇角色畫面相關
+        private Panel panelCharacterScreen = new Panel();
+        private bool isCapooSelected = false;
+        private bool capooSkillUsed = false;
+
         private string takeCardTempFilePath;
         private string placeCardTempFilePath;
         private string placeChipTempFilePath;
@@ -54,6 +59,7 @@ namespace _1121538_徐霈綺_CardGame
             InitializeComponent();
             SetupUI();
             SetupTitleScreen();
+            SetupCharacterScreen();
             ExtractAudioFiles();
             ShowTitleScreen();
         }
@@ -157,6 +163,56 @@ namespace _1121538_徐霈綺_CardGame
             StopBackgroundMusic();
             panelTitle.Visible = false;
             PlayBackgroundMusic(backMusicTempFilePath, 300); // 低音量 (範圍約0-1000)
+            panelCharacterScreen.BringToFront();
+            panelCharacterScreen.Visible = true;
+        }
+
+        private void SetupCharacterScreen()
+        {
+            panelCharacterScreen.Size = new Size(950, 650);
+            panelCharacterScreen.Location = new Point(0, 0);
+            panelCharacterScreen.BackColor = Color.DarkGreen;
+            panelCharacterScreen.Visible = false;
+
+            Label lblSelectTitle = new Label();
+            lblSelectTitle.Text = "請選擇角色";
+            lblSelectTitle.Font = new Font("Arial", 36, FontStyle.Bold);
+            lblSelectTitle.ForeColor = Color.Yellow;
+            lblSelectTitle.AutoSize = true;
+            lblSelectTitle.Location = new Point(330, 50);
+
+            PictureBox pbCapoo = new PictureBox();
+            pbCapoo.Image = (Image)Properties.Resources.ResourceManager.GetObject("character1");
+            pbCapoo.SizeMode = PictureBoxSizeMode.Zoom;
+            pbCapoo.Size = new Size(200, 200);
+            pbCapoo.Location = new Point(375, 150);
+
+            Label lblCapooDesc = new Label();
+            lblCapooDesc.Text = "角色：咖波\n技能：每局限發動一次。當抽牌導致爆牌時，\n強制「吃掉」最後抽到的那張牌，讓點數退回，\n並強制進入「停牌」。";
+            lblCapooDesc.Font = new Font("Arial", 14, FontStyle.Bold);
+            lblCapooDesc.ForeColor = Color.White;
+            lblCapooDesc.AutoSize = true;
+            lblCapooDesc.Location = new Point(275, 370);
+            lblCapooDesc.TextAlign = ContentAlignment.MiddleCenter;
+
+            Button btnSelectCapoo = new Button();
+            btnSelectCapoo.Text = "選擇咖波";
+            btnSelectCapoo.Font = new Font("Arial", 16, FontStyle.Bold);
+            btnSelectCapoo.Size = new Size(150, 50);
+            btnSelectCapoo.Location = new Point(400, 480);
+            btnSelectCapoo.Click += BtnSelectCapoo_Click;
+
+            panelCharacterScreen.Controls.Add(lblSelectTitle);
+            panelCharacterScreen.Controls.Add(pbCapoo);
+            panelCharacterScreen.Controls.Add(lblCapooDesc);
+            panelCharacterScreen.Controls.Add(btnSelectCapoo);
+            this.Controls.Add(panelCharacterScreen);
+        }
+
+        private void BtnSelectCapoo_Click(object sender, EventArgs e)
+        {
+            isCapooSelected = true;
+            panelCharacterScreen.Visible = false;
             StartBettingPhase();
         }
 
@@ -380,6 +436,8 @@ namespace _1121538_徐霈綺_CardGame
                 return;
             }
 
+            capooSkillUsed = false; // 重置咖波技能狀態
+
             btnDeal.Enabled = false;
             foreach (var btn in betButtons)
             {
@@ -497,7 +555,38 @@ namespace _1121538_徐霈綺_CardGame
 
             if (CalculateScore(playerHand) > 21)
             {
-                EndGame("玩家爆牌！莊家獲勝！", -1);
+                if (isCapooSelected && !capooSkillUsed)
+                {
+                    MessageBox.Show("咖波發動技能！「吃掉」了導致爆牌的那張牌！");
+                    capooSkillUsed = true;
+
+                    // 退回最後一張牌
+                    playerHand.RemoveAt(playerHand.Count - 1);
+
+                    // 移除畫面上的最後一張牌
+                    PictureBox lastCardPb = null;
+                    int maxX = -1;
+                    foreach (Control ctrl in panelPlayer.Controls)
+                    {
+                        if (ctrl is PictureBox && ctrl.Location.X > maxX)
+                        {
+                            maxX = ctrl.Location.X;
+                            lastCardPb = (PictureBox)ctrl;
+                        }
+                    }
+                    if (lastCardPb != null)
+                    {
+                        panelPlayer.Controls.Remove(lastCardPb);
+                        lastCardPb.Dispose();
+                    }
+
+                    UpdateScores(false);
+                    BtnStand_Click(sender, e); // 強制停牌
+                }
+                else
+                {
+                    EndGame("玩家爆牌！莊家獲勝！", -1);
+                }
             }
         }
 
